@@ -39,6 +39,11 @@ class HybridField extends FieldGroup
         $this->mode = $mode;
     }
 
+    public function getFieldMode()
+    {
+        return $this->mode;
+    }
+
     /**
      * {@inheritDoc}
      *

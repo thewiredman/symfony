@@ -1,6 +1,6 @@
 <?php
 
-namespace Symfony\Component\Form;
+namespace Symfony\Bundle\FrameworkBundle\Templating;
 
 /**
  * An implementation of HtmlGeneratorInterface

@@ -20,10 +20,10 @@ class CheckboxField extends ToggleField
     /**
      * {@inheritDoc}
      */
-    public function render(array $attributes = array())
+    public function getAttributes()
     {
-        return parent::render(array_merge(array(
+        return array_merge(parent::getAttributes(), array(
             'type' => 'checkbox',
-        ), $attributes));
+        ));
     }
 }

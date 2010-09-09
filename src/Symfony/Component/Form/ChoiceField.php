@@ -28,7 +28,6 @@ class ChoiceField extends HybridField
         $this->addOption('multiple', false);
         $this->addOption('expanded', false);
         $this->addOption('empty_value', '');
-        $this->addOption('translate_choices', false);
 
         if (!is_array($this->getOption('choices'))) {
             throw new UnexpectedTypeException('The choices option must be an array');
@@ -61,6 +60,11 @@ class ChoiceField extends HybridField
         }
     }
 
+    public function getPreferredChoices()
+    {
+        return $this->preferredChoices;
+    }
+
     /**
      * Returns a new field of type radio button or checkbox.
      *
@@ -73,13 +77,11 @@ class ChoiceField extends HybridField
             return new CheckboxField($choice, array(
                 'value' => $choice,
                 'label' => $label,
-                'translate_label' => $this->getOption('translate_choices'),
             ));
         } else {
             return new RadioField($choice, array(
                 'value' => $choice,
                 'label' => $label,
-                'translate_label' => $this->getOption('translate_choices'),
             ));
         }
     }
@@ -161,92 +163,5 @@ class ChoiceField extends HybridField
         } else {
             return parent::reverseTransform($value);
         }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function render(array $attributes = array())
-    {
-        if ($this->getOption('expanded')) {
-            $html = "";
-
-            foreach ($this as $field) {
-                $html .= $field->render()."\n";
-            }
-
-            return $html;
-        } else {
-            $attrs['id'] = $this->getId();
-            $attrs['name'] = $this->getName();
-            $attrs['disabled'] = $this->isDisabled();
-
-            // Add "[]" to the name in case a select tag with multiple options is
-            // displayed. Otherwise only one of the selected options is sent in the
-            // POST request.
-            if ($this->getOption('multiple') && !$this->getOption('expanded')) {
-                $attrs['name'] .= '[]';
-            }
-
-            if ($this->getOption('multiple')) {
-                $attrs['multiple'] = 'multiple';
-            }
-
-            $selected = array_flip(array_map('strval', (array)$this->getDisplayedData()));
-            $html = "\n";
-
-            if (!$this->isRequired()) {
-                $html .= $this->renderChoices(array('' => $this->getOption('empty_value')), $selected)."\n";
-            }
-
-            $choices = $this->getOption('choices');
-
-            if (count($this->preferredChoices) > 0) {
-                $html .= $this->renderChoices(array_intersect_key($choices, $this->preferredChoices), $selected)."\n";
-                $html .= $this->generator->contentTag('option', $this->getOption('separator'), array('disabled' => true))."\n";
-            }
-
-            $html .= $this->renderChoices(array_diff_key($choices, $this->preferredChoices), $selected)."\n";
-
-            return $this->generator->contentTag('select', $html, array_merge($attrs, $attributes));
-        }
-    }
-
-    /**
-     * Returns an array of option tags for the choice field
-     *
-     * @return array  An array of option tags
-     */
-    protected function renderChoices(array $choices, array $selected)
-    {
-        $options = array();
-
-        foreach ($choices as $key => $option) {
-            if (is_array($option)) {
-                $options[] = $this->generator->contentTag(
-                    'optgroup',
-                    "\n".$this->renderChoices($option, $selected)."\n",
-                    array('label' => $this->generator->escape($key))
-                );
-            } else {
-                $attributes = array('value' => $this->generator->escape($key));
-
-                if (isset($selected[strval($key)])) {
-                    $attributes['selected'] = true;
-                }
-
-                if ($this->getOption('translate_choices')) {
-                    $option = $this->translate($option);
-                }
-
-                $options[] = $this->generator->contentTag(
-                    'option',
-                    $this->generator->escape($option),
-                    $attributes
-                );
-            }
-        }
-
-        return implode("\n", $options);
     }
 }
